@@ -7,7 +7,13 @@ export default function LandingPage() {
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
         <span className="text-2xl font-black tracking-tight text-violet-600">UPLIFT</span>
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center">
+          <Link
+            href="/browse"
+            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-violet-600 transition-colors"
+          >
+            Browse videos
+          </Link>
           <Link
             href="/auth/login"
             className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-violet-600 transition-colors"
@@ -100,8 +106,8 @@ export default function LandingPage() {
               <h3 className="text-xl font-bold mb-6 text-amber-600">For Earners</h3>
               <ol className="space-y-4">
                 {[
-                  { step: "1", text: "Sign up free — takes 30 seconds" },
-                  { step: "2", text: "Browse available videos on the platform" },
+                  { step: "1", text: "Browse videos — no account needed" },
+                  { step: "2", text: "Sign up free in 30 seconds to start earning" },
                   { step: "3", text: "Watch the video (at least 70% to earn)" },
                   { step: "4", text: "Withdraw your earnings via MTN MoMo" },
                 ].map(({ step, text }) => (

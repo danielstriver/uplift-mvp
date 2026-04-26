@@ -64,8 +64,7 @@ export default function NewCampaignPage() {
       return;
     }
 
-    router.push("/creator?success=campaign-created");
-    router.refresh();
+    router.push("/creator");
   }
 
   return (

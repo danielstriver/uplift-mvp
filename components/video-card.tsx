@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { formatRWF } from "@/lib/utils";
 import { Play, CheckCircle, DollarSign, Eye } from "lucide-react";
 import YouTubePlayer from "@/components/youtube-player";
@@ -17,11 +17,11 @@ export default function VideoCard({ campaign, earnerId, alreadyWatched = false }
   const [earned, setEarned] = useState(alreadyWatched);
   const [justEarned, setJustEarned] = useState(false);
 
-  function handleEarned(_amount: number) {
+  const handleEarned = useCallback((_amount: number) => {
     setEarned(true);
     setJustEarned(true);
     setTimeout(() => setJustEarned(false), 3000);
-  }
+  }, []);
 
   return (
     <div className={`bg-white rounded-2xl border overflow-hidden transition-all ${

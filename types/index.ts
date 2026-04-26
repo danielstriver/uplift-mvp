@@ -5,6 +5,7 @@ export interface Profile {
   role: UserRole;
   full_name: string;
   phone: string | null;
+  is_admin: boolean;
   created_at: string;
 }
 

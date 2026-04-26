@@ -39,7 +39,7 @@ interface YTPlayer {
   destroy: () => void;
 }
 
-const EARN_THRESHOLD = 0.7; // must watch 70% to earn
+const EARN_THRESHOLD = 0.7;
 
 export default function YouTubePlayer({ campaignId, videoId, earnPerView, earnerId, onEarned }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -68,13 +68,11 @@ export default function YouTubePlayer({ campaignId, videoId, earnPerView, earner
     );
 
     if (!error) {
-      // Update wallet balance
       await supabase.rpc("increment_wallet", {
         p_user_id: earnerId,
         p_amount: earnPerView,
       });
 
-      // Log transaction
       await supabase.from("transactions").insert({
         user_id: earnerId,
         type: "earn",
@@ -82,7 +80,6 @@ export default function YouTubePlayer({ campaignId, videoId, earnPerView, earner
         description: `Watched video on UPLIFT`,
       });
 
-      // Increment campaign view count
       await supabase.rpc("increment_campaign_views", {
         p_campaign_id: campaignId,
       });
@@ -94,16 +91,19 @@ export default function YouTubePlayer({ campaignId, videoId, earnPerView, earner
     setEarning(false);
   }, [campaignId, earnerId, earnPerView, onEarned]);
 
+  // Keep a ref to the latest creditEarner so the player setup effect
+  // never needs to re-run (and destroy/recreate the iframe) when it changes.
+  const creditEarnerRef = useRef(creditEarner);
+  useEffect(() => {
+    creditEarnerRef.current = creditEarner;
+  });
+
   useEffect(() => {
     function initPlayer() {
       if (!containerRef.current) return;
       playerRef.current = new window.YT.Player(containerRef.current, {
         videoId,
-        playerVars: {
-          modestbranding: 1,
-          rel: 0,
-          autoplay: 0,
-        },
+        playerVars: { modestbranding: 1, rel: 0, autoplay: 0 },
         events: {
           onStateChange: (e) => {
             if (e.data === window.YT.PlayerState.PLAYING) {
@@ -115,7 +115,7 @@ export default function YouTubePlayer({ campaignId, videoId, earnPerView, earner
                   const pct = current / duration;
                   setWatchPercent(pct);
                   if (pct >= EARN_THRESHOLD && !hasCredited.current) {
-                    creditEarner();
+                    creditEarnerRef.current();
                   }
                 }
               }, 2000);
@@ -140,19 +140,17 @@ export default function YouTubePlayer({ campaignId, videoId, earnPerView, earner
       if (intervalRef.current) clearInterval(intervalRef.current);
       playerRef.current?.destroy();
     };
-  }, [videoId, creditEarner]);
+  }, [videoId]); // stable — only recreates player if the video itself changes
 
   const progressPct = Math.min(watchPercent * 100, 100);
   const thresholdLeft = Math.max(0, (EARN_THRESHOLD - watchPercent) * 100);
 
   return (
     <div className="space-y-3">
-      {/* YouTube iframe container */}
       <div className="aspect-video w-full rounded-xl overflow-hidden bg-black">
         <div ref={containerRef} className="w-full h-full" />
       </div>
 
-      {/* Progress bar and earn status */}
       <div className="bg-gray-50 rounded-xl p-4">
         <div className="flex items-center justify-between mb-2 text-sm">
           <span className="text-gray-600 font-medium">Watch progress</span>
@@ -170,7 +168,6 @@ export default function YouTubePlayer({ campaignId, videoId, earnPerView, earner
           )}
         </div>
 
-        {/* Progress track */}
         <div className="relative h-2.5 bg-gray-200 rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${
@@ -178,11 +175,7 @@ export default function YouTubePlayer({ campaignId, videoId, earnPerView, earner
             }`}
             style={{ width: `${progressPct}%` }}
           />
-          {/* 70% marker */}
-          <div
-            className="absolute top-0 bottom-0 w-0.5 bg-amber-400"
-            style={{ left: "70%" }}
-          />
+          <div className="absolute top-0 bottom-0 w-0.5 bg-amber-400" style={{ left: "70%" }} />
         </div>
 
         <div className="flex justify-between text-xs text-gray-400 mt-1">
@@ -192,7 +185,6 @@ export default function YouTubePlayer({ campaignId, videoId, earnPerView, earner
         </div>
       </div>
 
-      {/* Earning animation */}
       {earning && !earned && (
         <div className="flex items-center gap-2 justify-center p-3 bg-amber-50 rounded-xl text-amber-700 text-sm font-medium">
           <DollarSign size={16} className="animate-bounce" />
